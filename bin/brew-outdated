@@ -1,0 +1,41 @@
+#!/bin/zsh
+# Caches which Homebrew packages are outdated, and which ones are installed but
+# missing from the Brewfile.
+#
+# Run by the launchd agent (com.ferranpalmac.brew-outdated) at login and once a
+# day; safe to run by hand. 
+#
+# launchd runs this with an almost empty environment so nothing here may depend on it.
+
+# reset zsh options to defaults just for the script execution
+emulate -L zsh
+set -o errexit -o nounset -o pipefail
+
+export PATH="/opt/homebrew/bin:$PATH"
+
+local state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/homebrew"
+local cache="$state_dir/outdated"
+local drift="$state_dir/drift"
+local brewfile="${HOMEBREW_BUNDLE_FILE:-$HOME/dotfiles/Brewfile}"
+
+mkdir -p "$state_dir"
+
+# `brew update` requires network connection. At login the network is often
+# not up yet: retry once, and if it still fails, keep last known list.
+brew update --quiet || { sleep 60; brew update --quiet }
+
+brew outdated --verbose > "$cache.new"
+mv "$cache.new" "$cache"
+
+# Installed on purpose but missing from the Brewfile, so that an ad-hoc
+# `brew install` is not forgotten. Dependencies are left out: only what was
+# asked for is compared. Offline, unlike `brew bundle cleanup`, which
+# auto-updates before answering and prints its cache cleanup as well.
+comm -23 \
+  <({ brew list --formula --installed-on-request; brew list --cask } | sort) \
+  <(sed -nE 's/^(brew|cask) "([^"]+)".*/\2/p' "$brewfile" | sort) \
+  > "$drift.new"
+mv "$drift.new" "$drift"
+
+# Only of use when run by hand: launchd discards this.
+print "$(wc -l < "$cache" | tr -d ' ') outdated, $(wc -l < "$drift" | tr -d ' ') not in the Brewfile"

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.ferranpalmac.brew-outdated</string>
+
+  <!-- Run through a login zsh instead of naming the script's path directly.
+       launchd expands neither ~ nor $HOME, so an absolute path here would hard-
+       code one user's home and break on any other machine. A login shell reads
+       .zshenv and .zprofile, which put ~/.local/bin and Homebrew on PATH, so
+       `brew-outdated` resolves by name. /bin/zsh is the only absolute path left
+       and it is macOS's own, not user-specific.
+
+       -l (login) and not -i (interactive): .zshrc is deliberately not read, so
+       the prompt, plugins and the notice function never load here. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>-lc</string>
+    <string>brew-outdated</string>
+  </array>
+
+  <!-- Deliberately no RunAtLoad. It would fire the job at every login AND the
+       moment `bootstrap` loads the agent, turning setup into a `brew update`
+       over the network. Nothing is lost by leaving it out: a cold or stale cache
+       is picked up by `brew_outdated_notice`, which kickstarts this job from the
+       first shell whose cache is more than a day old. -->
+
+  <!-- every day at 10:00. Wall clock, unlike StartInterval, which counts from
+       load and was deferred for days. -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>10</integer>
+    <key>Minute</key>
+    <integer>0</integer>
+  </dict>
+
+  <!-- No ProcessType: `Background` opts the job into launchd's throttling for
+       work the user did not ask for, which is why it stopped running. -->
+  <key>LowPriorityIO</key>
+  <true/>
+  <key>Nice</key>
+  <integer>5</integer>
+</dict>
+</plist>

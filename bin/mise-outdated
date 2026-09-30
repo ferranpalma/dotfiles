@@ -1,0 +1,48 @@
+#!/bin/zsh
+# Caches which mise-managed tools are outdated: the node, go and python runtimes
+# plus nvim's language servers and formatters.
+#
+# Run by the launchd agent (com.ferranpalmac.mise-outdated) at login and once a
+# day; safe to run by hand.
+#
+# A separate job from `brew-outdated` rather than a flag on it, because the two
+# ask different registries and fail independently: an unreachable npm or Go
+# proxy should not cost us the Homebrew report, or the other way round.
+#
+# launchd runs this with an almost empty environment so nothing here may depend on it.
+
+# reset zsh options to defaults just for the script execution
+emulate -L zsh
+set -o errexit -o nounset -o pipefail
+
+# mise itself comes from Homebrew, which is not on launchd's PATH. The shims
+# directory is deliberately not added: this calls mise, never a managed tool.
+export PATH="/opt/homebrew/bin:$PATH"
+
+local state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/mise"
+local cache="$state_dir/outdated"
+
+mkdir -p "$state_dir"
+
+# `mise outdated` asks every backend's registry, so it needs the network. At
+# login it is often not up yet: retry once, and if it still fails keep the last
+# known list instead of truncating it to nothing.
+#
+# Deliberately no --bump. The pins are meant literally (`node = "lts"`,
+# `python = "3.14"`), and --bump would report node 26 as outdated for as long as
+# the pin says lts. Only versions that actually satisfy the request are compared.
+#
+# The table goes to stdout and mise's own "All tools are up to date" log to
+# stderr, so stdout alone is either the list or empty.
+if ! mise outdated > "$cache.new" 2>/dev/null; then
+  sleep 60
+  mise outdated > "$cache.new" 2>/dev/null || { rm -f "$cache.new"; exit 0 }
+fi
+mv "$cache.new" "$cache"
+
+# There is no drift file here, unlike the Homebrew job. mise only ever installs
+# what a config file asks for, and `mise use` writes to that config, so an
+# ad-hoc install cannot go unrecorded the way a bare `brew install` can.
+
+# Only of use when run by hand: launchd discards this.
+print "$(wc -l < "$cache" | tr -d ' ') outdated"

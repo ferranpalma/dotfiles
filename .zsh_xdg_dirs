@@ -1,0 +1,11 @@
+# Create the directories the XDG variables point to (sourced from .zshrc)
+
+mkdir -p \
+  "$XDG_CONFIG_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_CACHE_HOME" \
+  "$(dirname "$HISTFILE")" \
+  "$(dirname "$LESSHISTFILE")" \
+  "$ZPLUG_CACHE_DIR" \
+  "$(dirname "$STARSHIP_CONFIG")" \
+  "$STARSHIP_CACHE" \
+  "$(dirname "$NODE_REPL_HISTORY")" \
+  "$(dirname "$PYTHON_HISTORY")"

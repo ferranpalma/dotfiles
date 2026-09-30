@@ -1,0 +1,66 @@
+# loaded by .zshrc
+
+alias ls='ls -hAF'
+alias la='ls -lhaF'
+alias ll='ls -lhAF'
+
+alias mkdir='mkdir -p'
+alias md='mkdir -p'
+alias rd='rmdir'
+alias cd..='cd ..'
+alias ..='cd ..'
+alias ...='cd ../..'
+
+alias cp='cp -i'
+alias mv='mv -i'
+alias rm='rm -I'
+
+alias tl='tmux ls'
+alias tn='tmux new-session -A -s'
+alias tk='tmux kill-session -t'
+alias tal='tmux attach-session'
+alias tas='tmux attach-session -t'
+
+# Use nvim instead of the system vim (which writes ~/.viminfo)
+if command -v nvim &> /dev/null; then
+  alias vim='nvim'
+fi
+
+# cd's
+alias dotfiles='cd ~ferranpalmac/dotfiles'
+alias dev='cd ~ferranpalmac/Dev'
+
+alias bc='cd ~ferranpalmac/BCLABS'
+alias factout='cd ~ferranpalmac/BCLABS/factout'
+alias laibel='cd ~ferranpalmac/BCLABS/laibel'
+
+alias dssh='cd ~ferranpalmac/.ssh'
+
+# kubernetes
+alias kubectl='kubecolor'
+alias k='kubectl'
+alias kc='kubectx'
+alias kn='kubens'
+alias kgp='k get pods'
+
+# git
+alias gs='git status'
+alias gc='git commit'
+alias gp='git push'
+alias gl='git pull'
+alias gb='git branch'
+
+# laibel
+alias laibel-tunnel-dev='kubectl --context main -n laibel-dev port-forward pod/rds-bastion 15432:5432'
+alias laibel-tunnel-prod='kubectl --context main -n laibel port-forward pod/rds-bastion 25432:5432'
+
+# aws
+alias ap='aws-profile'
+
+# docker
+alias dps='docker ps -l'
+alias dpsa='docker ps -al'
+alias dv='docker volume list'
+
+# brew
+alias bupdate='brew update -y'

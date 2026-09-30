@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.ferranpalmac.mise-outdated</string>
+
+  <!-- Run through a login zsh rather than naming the script's path, so nothing
+       here hardcodes a home directory: launchd expands neither ~ nor $HOME. The
+       login shell reads .zshenv and .zprofile, which put ~/.local/bin and
+       Homebrew on PATH, so `mise-outdated` resolves by name. See the sibling
+       brew-outdated plist for the longer version. -->
+  <key>ProgramArguments</key>
+  <array>
+    <string>/bin/zsh</string>
+    <string>-lc</string>
+    <string>mise-outdated</string>
+  </array>
+
+  <!-- at every login and at `launchctl bootstrap` -->
+  <!-- Deliberately no RunAtLoad; see the sibling brew-outdated plist. It would
+       make `bootstrap` hit the network just by loading the agent, and
+       `mise_outdated_notice` already kickstarts this job when the cache is
+       stale. -->
+
+  <!-- every day at 10:05, five minutes after the Homebrew job, so the two are
+       not hitting the network at the same moment. Wall clock, unlike
+       StartInterval, which counts from load and was deferred for days. -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key>
+    <integer>10</integer>
+    <key>Minute</key>
+    <integer>5</integer>
+  </dict>
+
+  <!-- No ProcessType: `Background` opts the job into launchd's throttling for
+       work the user did not ask for, which is what stopped the Homebrew job
+       running when it was set. -->
+  <key>LowPriorityIO</key>
+  <true/>
+  <key>Nice</key>
+  <integer>5</integer>
+</dict>
+</plist>

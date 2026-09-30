@@ -1,0 +1,24 @@
+# Global tool versions, symlinked to ~/.config/mise/config.toml.
+
+[tools]
+node = "lts"       # 24.21.0 today
+go = "latest"      # 1.27.1 today
+python = "3.14"    # newest patch of 3.14, currently 3.14.7
+
+# nvim's language servers and formatters (configured in nvim/lua/lsp.lua and
+# nvim/lua/plugins.lua). These live here rather than in the Brewfile because
+# they are toolchain, not programs of this machine: a repository can pin its own
+# version in its own mise.toml. That matters most for gopls, whose releases
+# track Go's, so a project on an older Go can get a gopls that matches.
+#
+# Short names are resolved through `mise registry`; the rest name the backend
+# because they are not in it. `mise registry <name>` shows what a name maps to.
+lua-language-server = "latest"
+ruff = "latest"                          # python lint, format, and a server
+stylua = "latest"                        # lua formatter
+"go:golang.org/x/tools/gopls" = "latest"
+"npm:@vtsls/language-server" = "latest"  # provides `vtsls`, bundles TypeScript
+# basedpyright ships on both npm and PyPI. npm, because node is already a tool
+# here, while the pipx backend would need pipx or uv installed on top.
+"npm:basedpyright" = "latest"            # provides `basedpyright-langserver`
+"ubi:tree-sitter/tree-sitter" = "latest" # nvim-treesitter compiles parsers with it

@@ -1,0 +1,13 @@
+# loaded by .zshrc
+
+# https://github.com/zplug/zplug
+source "$ZPLUG_HOME/init.zsh"
+
+zplug "zsh-users/zsh-autosuggestions"
+zplug "zsh-users/zsh-syntax-highlighting", defer:2 # to run after compinit command
+zplug "jeffreytse/zsh-vi-mode"
+
+zplug "plugins/colored-man-pages",   from:oh-my-zsh
+
+zplug check || zplug install
+zplug load

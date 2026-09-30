@@ -1,0 +1,98 @@
+# loaded by .zshrc
+
+mkcd() {
+  mkdir -p "$1" && cd "$1"
+}
+
+aws-profile () {
+        if [ $# -eq 0 ]
+        then
+                echo "$AWS_PROFILE"
+                return 0
+        fi
+        if [[ "$1" == "clear" ]]
+        then
+                unset AWS_PROFILE
+        else
+                export AWS_PROFILE="$1"
+        fi
+}
+
+# Outdated Homebrew packages, and packages missing from the Brewfile, as found
+# by the launchd agent (com.ferranpalmac.brew-outdated). Reads its two cache
+# files: no network and no brew call, so new shells stay instant.
+brew_outdated_notice() {
+  local state="$XDG_STATE_HOME/homebrew"
+  local cache="$state/outdated" drift="$state/drift" shown="$state/notified"
+  local today="$(date +%F)"
+
+  # check if the cache is older than a day
+  # if it is, run the process in detached mode
+  local mtime=$(stat -f %m "$cache" 2>/dev/null || print 0)
+  (( $(date +%s) - mtime > 86400 )) && \
+    launchctl kickstart "gui/$UID/com.ferranpalmac.brew-outdated" &>/dev/null
+
+  # already shown today
+  [[ -r "$shown" && "$(<$shown)" == "$today" ]] && return
+
+  local -a names=() unlisted=()
+
+  if [[ -s "$cache" ]]; then
+    local -a lines=("${(@f)$(<$cache)}")   # one line per package: name (1.0) < 1.1
+    names=(${lines%% *})                   # unquoted: strips per element, not once joined
+  fi
+  [[ -s "$drift" ]] && unlisted=("${(@f)$(<$drift)}")
+
+  # everything up to date and nothing missing from the Brewfile
+  (( $#names + $#unlisted )) || return 0
+
+  print -r -- "$today" > "$shown"
+
+  (( $#names )) && \
+    print -P "%F{yellow}brew%f $#names outdated: $names %F{242}(brew upgrade)%f"
+  (( $#unlisted )) && \
+    print -P "%F{yellow}brew%f $#unlisted not in the Brewfile: $unlisted %F{242}(add them, or brew uninstall)%f"
+
+  # a false (( )) returns 1, which would make the first prompt show the previous
+  # command as failed
+  return 0
+}
+
+# Outdated mise-managed tools (the runtimes, and nvim's language servers and
+# formatters), as found by the launchd agent (com.ferranpalmac.mise-outdated).
+# Reads its cache file: no network and no mise call, so new shells stay instant.
+# The Homebrew equivalent is brew_outdated_notice above.
+#
+# There is no drift half here: mise cannot have tools installed that its config
+# does not list, so there is nothing to compare against.
+mise_outdated_notice() {
+  local state="$XDG_STATE_HOME/mise"
+  local cache="$state/outdated" shown="$state/notified"
+  local today="$(date +%F)"
+
+  # check if the cache is older than a day
+  # if it is, run the process in detached mode
+  local mtime=$(stat -f %m "$cache" 2>/dev/null || print 0)
+  (( $(date +%s) - mtime > 86400 )) && \
+    launchctl kickstart "gui/$UID/com.ferranpalmac.mise-outdated" &>/dev/null
+
+  # already shown today
+  [[ -r "$shown" && "$(<$shown)" == "$today" ]] && return
+
+  # empty cache means everything is up to date
+  [[ -s "$cache" ]] || return 0
+
+  # one line per tool: name requested current bump latest source
+  local -a lines=("${(@f)$(<$cache)}")
+  local -a names=(${lines%% *})   # unquoted: strips per element, not once joined
+
+  (( $#names )) || return 0
+
+  print -r -- "$today" > "$shown"
+
+  print -P "%F{yellow}mise%f $#names outdated: $names %F{242}(mise upgrade)%f"
+
+  # a false (( )) returns 1, which would make the first prompt show the previous
+  # command as failed
+  return 0
+}

@@ -1,0 +1,217 @@
+#!/bin/zsh
+
+# Sets up this machine from a fresh clone
+
+emulate -L zsh
+set -o errexit -o nounset -o pipefail
+
+# Where this script is, with symlinks resolved. Everything is linked from here.
+DOTFILES="${0:A:h}"
+
+XDG_CONFIG_HOME="${XDG_CONFIG_HOME:-$HOME/.config}"
+XDG_DATA_HOME="${XDG_DATA_HOME:-$HOME/.local/share}"
+
+usage() {
+  cat <<'EOF'
+Sets up this machine from a fresh clone: packages, plugin managers, symlinks,
+runtimes, launchd agents, tmux plugins, nvim plugins and parsers.
+
+Safe to rerun: every step checks its own work first, and an existing real file
+is never overwritten, only renamed to .backup-<timestamp>.
+
+  bootstrap               everything
+  bootstrap --no-plugins  skip the slow tmux/nvim plugin steps
+  bootstrap --help        this text
+EOF
+}
+
+PLUGINS=1
+for arg in "$@"; do
+  case "$arg" in
+    --no-plugins) PLUGINS=0 ;;
+    -h|--help)
+      usage
+      exit 0
+      ;;
+    *)
+      print -u2 "unknown option: $arg (try --help)"
+      exit 2
+      ;;
+  esac
+done
+
+# ---------------------------------------------------------------- reporting --
+
+step()  { print -P "\n%F{blue}==>%f %B$1%b" }
+ok()    { print -P "  %F{green}✓%f $1" }
+skip()  { print -P "  %F{242}·%f $1" }
+warn()  { print -P "  %F{yellow}!%f $1" }
+die()   { print -P "\n%F{red}✗%f $1" >&2; exit 1 }
+
+# ------------------------------------------------------------------- checks --
+
+[[ "$OSTYPE" == darwin* ]] || die "this setup is macOS only (found $OSTYPE)"
+
+if [[ "$DOTFILES" != "$HOME/dotfiles" ]]; then
+  die "the repo must live at ~/dotfiles, not $DOTFILES"
+fi
+
+# ------------------------------------------------------------------ helpers --
+
+# Symlink $2 -> $1, without ever destroying something that is not ours: an
+# existing real file is renamed rather than overwritten, a symlink pointing
+# somewhere else is replaced, and an already-correct one is left alone.
+link() {
+  local src="$1" dst="$2"
+
+  [[ -e "$src" ]] || die "nothing to link at $src"
+
+  if [[ -L "$dst" ]]; then
+    if [[ "${dst:A}" == "${src:A}" ]]; then
+      skip "${dst/#$HOME/~}"
+      return
+    fi
+    rm "$dst"
+  elif [[ -e "$dst" ]]; then
+    local backup="$dst.backup-$(date +%Y%m%d%H%M%S)"
+    mv "$dst" "$backup"
+    warn "${dst/#$HOME/~} existed, kept as ${backup:t}"
+  fi
+
+  mkdir -p "${dst:h}"
+  ln -s "$src" "$dst"
+  ok "${dst/#$HOME/~} -> ${src/#$HOME/~}"
+}
+
+clone() {
+  local url="$1" dst="$2"
+  if [[ -d "$dst/.git" ]]; then
+    skip "${dst/#$HOME/~}"
+  else
+    git clone --depth 1 --quiet "$url" "$dst"
+    ok "${dst/#$HOME/~}"
+  fi
+}
+
+# ------------------------------------------------------------- 1. homebrew --
+
+step "Homebrew"
+
+find_brew() {
+  local candidate
+  for candidate in /opt/homebrew/bin/brew /usr/local/bin/brew; do
+    if [[ -x "$candidate" ]]; then
+      print -r -- "$candidate"
+      return 0
+    fi
+  done
+  return 1
+}
+
+if brew_bin="$(find_brew)"; then
+  skip "already installed at $brew_bin"
+else
+  warn "installing Homebrew; it will ask for your password"
+  /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  brew_bin="$(find_brew)" || die "Homebrew installed but no brew found in either prefix"
+  ok "installed at $brew_bin"
+fi
+
+eval "$("$brew_bin" shellenv)"
+
+# --------------------------------------------------------------- 2. packages --
+
+step "Packages from the Brewfile"
+brew bundle --file "$DOTFILES/Brewfile"
+
+# -------------------------------------------------------- 3. plugin managers --
+
+step "Plugin managers"
+clone https://github.com/zplug/zplug "$XDG_DATA_HOME/zplug"
+clone https://github.com/tmux-plugins/tpm "$XDG_DATA_HOME/tmux/plugins/tpm"
+
+# --------------------------------------------------------------- 4. symlinks --
+
+step "Config symlinks"
+
+link "$DOTFILES/.zshenv"    "$HOME/.zshenv"
+link "$DOTFILES/.zshenv"    "$XDG_CONFIG_HOME/zsh/.zshenv"
+link "$DOTFILES/.zprofile"  "$XDG_CONFIG_HOME/zsh/.zprofile"
+link "$DOTFILES/.zshrc"     "$XDG_CONFIG_HOME/zsh/.zshrc"
+
+link "$DOTFILES/.tmux.conf" "$XDG_CONFIG_HOME/tmux/tmux.conf"
+
+link "$DOTFILES/nvim"       "$XDG_CONFIG_HOME/nvim"
+
+link "$DOTFILES/mise.toml"  "$XDG_CONFIG_HOME/mise/config.toml"
+
+# git reads $XDG_CONFIG_HOME/git/config natively, so there is no ~/.gitconfig.
+link "$DOTFILES/git/config" "$XDG_CONFIG_HOME/git/config"
+
+[[ -d "$HOME/.ssh" ]] && chmod 700 "$HOME/.ssh"
+
+# --------------------------------------------------------------- 5. runtimes --
+
+step "Runtimes and language servers (mise)"
+mise install
+ok "$(mise ls --current --offline 2>/dev/null | wc -l | tr -d ' ') tools active"
+
+# --------------------------------------------------------- 6. launchd agents --
+
+step "Daily update checks (launchd)"
+
+# Every plist in launchd/ is an agent, discover them
+for plist in "$DOTFILES"/launchd/*.plist; do
+  label="$(plutil -extract Label raw -o - "$plist")" \
+    || die "no Label in ${plist:t}"
+
+  # The script each agent runs is the last component of the label, which is also
+  # the filename in bin/: com.example.brew-outdated -> brew-outdated.
+  job="${label##*.}"
+  [[ -f "$DOTFILES/bin/$job" ]] || die "${plist:t} names '$job' but bin/$job does not exist"
+
+  link "$DOTFILES/bin/$job" "$HOME/.local/bin/$job"
+  link "$plist" "$HOME/Library/LaunchAgents/$label.plist"
+
+  # bootstrap fails if the job is already loaded, which is the normal case on a
+  # re-run, so check first. Loading does NOT run the job
+  if launchctl print "gui/$UID/$label" &>/dev/null; then
+    skip "agent $label already loaded"
+  else
+    launchctl bootstrap "gui/$UID" "$HOME/Library/LaunchAgents/$label.plist"
+    ok "agent $label loaded"
+  fi
+done
+
+# ---------------------------------------------------------------- 7. plugins --
+
+if (( PLUGINS )); then
+  step "tmux plugins"
+  TMUX_PLUGIN_MANAGER_PATH="$XDG_DATA_HOME/tmux/plugins/" \
+    "$XDG_DATA_HOME/tmux/plugins/tpm/bin/install_plugins" >/dev/null
+  ok "installed"
+
+  step "nvim plugins and treesitter parsers"
+  warn "first run compiles every parser; this takes a few minutes"
+
+  # install then restore, never sync: sync also *updates* every plugin and
+  # rewrites lazy-lock.json, so setting up two machines on different days would
+  # give them different versions. Updating stays an explicit `:Lazy update`.
+  #
+  # --cmd runs before any config file, so treesitter.lua sees the flag and waits
+  # for its parsers. Without it this nvim would exit while they are still
+  # compiling, because install() is asynchronous.
+  nvim --headless --cmd 'let g:ferran_sync_install = 1' \
+    '+Lazy! install' '+Lazy! restore' +qa
+  ok "$(ls "$XDG_DATA_HOME"/nvim/site/parser 2>/dev/null | wc -l | tr -d ' ') parsers, \
+$(ls "$XDG_DATA_HOME"/nvim/lazy 2>/dev/null | wc -l | tr -d ' ') plugins"
+else
+  step "Plugins"
+  skip "skipped (--no-plugins)"
+fi
+
+# ------------------------------------------------------------------- summary --
+
+step "Done"
+print -P "  Open a new terminal. zplug installs its plugins on that first start.
+  Check nvim with %B:Lazy%b and %B:checkhealth%b."
