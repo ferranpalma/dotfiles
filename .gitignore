@@ -1,11 +1,6 @@
-# Machine-local overrides. These are the untracked halves of the tracked configs:
-# ssh/config includes ~/.ssh/config.local, git/config includes config.local.
-# Listed here as well in case either ever gets written inside the repo.
 config.local
 *.local
 
-# Anything key-shaped, so an exported key can never be committed by accident.
-# Private keys do not belong in this repo under any circumstances.
 id_*
 !id_*.pub
 *.pem
@@ -13,7 +8,6 @@ id_*
 *.p12
 known_hosts*
 
-# bootstrap renames a pre-existing real file rather than overwriting it.
 *.backup-*
 
 .DS_Store
