@@ -1,64 +1,34 @@
-# Linked to ~/.config/git/config. git reads that path natively, so unlike ssh
-# this needs no exception to the XDG layout and there is no ~/.gitconfig.
-#
-# Machine- or client-specific settings (work email, a different signing key) go
-# in ~/.config/git/config.local, which is included at the bottom and never
-# tracked. Later includes win in git, the opposite of ssh.
-
 [user]
 	name = Ferran Palma
 	email = ferranpalmac@gmail.com
-	# The public half of the signing key. Safe to commit: it is a public key, and
-	# git needs it to know which key to sign with.
 	signingkey = ~/.ssh/id_ed25519_github.pub
 
 [gpg]
-	# Sign with an SSH key rather than GPG. Needs git >= 2.34. This is why there
-	# is no GPG keyring to manage: the key that authenticates to GitHub is the
-	# same kind of key that signs.
+	# Sign with an SSH key rather than GPG.
 	format = ssh
 
 [gpg "ssh"]
-	# Lets `git log --show-signature` verify locally, by naming the file that maps
-	# an email to the keys allowed to sign for it. Without this, signing works and
-	# GitHub shows "Verified", but local verification says "No principal matched".
 	allowedSignersFile = ~/.config/git/allowed_signers
 
 [commit]
-	# The "mandatory" part: every commit is signed unless --no-gpg-sign is passed.
 	gpgsign = true
 
 [tag]
-	# Annotated tags too. Lightweight tags carry no signature by design.
 	gpgsign = true
-
-# NOTE: deliberately no `push.gpgSign`. That signs a push *certificate*, which
-# GitHub does not support -- turning it on makes every push fail with
-# "the receiving end does not support --signed push". Commits and tags are the
-# things that actually get signed.
 
 [init]
 	defaultBranch = main
 
 [pull]
-	# Refuse to guess between merge and rebase; say which one explicitly.
 	rebase = false
-	ff = only
 
 [fetch]
-	# Delete local remote-tracking branches whose upstream is gone.
 	prune = true
 
 [diff]
-	# Detect moved lines as moves rather than one deletion plus one addition.
 	colorMoved = zebra
 	algorithm = histogram
 
 [core]
 	editor = nvim
-	# Keep git's own pager but let it quit when the output fits on one screen.
-	pager = less -FRX
-
-[include]
-	# Last wins in git, so anything here overrides the settings above.
-	path = config.local
+	pager = less -FR
