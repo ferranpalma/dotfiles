@@ -49,6 +49,10 @@ alias gc='git commit'
 alias gp='git push'
 alias gl='git pull'
 alias gb='git branch'
+alias gbl='git branch --list'
+alias gbla='git branch -a'
+alias gd='git diff'
+alias ga='git add'
 
 # laibel
 alias laibel-tunnel-dev='kubectl --context main -n laibel-dev port-forward pod/rds-bastion 15432:5432'
