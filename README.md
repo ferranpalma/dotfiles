@@ -36,24 +36,6 @@ An existing real file is never overwritten, only renamed to `.backup-<timestamp>
 
 Then open a new terminal — zplug installs its own plugins on that first start.
 
-## What is in here
-
-| | |
-|---|---|
-| `.zshenv` | XDG variables, `ZDOTDIR`, locale. Read by every zsh |
-| `.zprofile` | `PATH`, Homebrew, mise shims, `EDITOR`. Login shells |
-| `.zshrc` | history, completion, prompt, and the files below. Interactive shells |
-| `.zsh_xdg_compliant` | per-tool variables that move config out of `$HOME` |
-| `.zsh_xdg_dirs` | creates the directories those variables point at |
-| `.zsh_alias`, `.zsh_functions`, `.zsh_plugins` | aliases, functions, zplug plugins |
-| `.tmux.conf` | tmux settings, key bindings and tpm plugins |
-| `nvim/` | Neovim config. |
-| `Brewfile` | the Homebrew packages |
-| `mise.toml` | toolchains, runtime versions and nvim language servers |
-| `bin/` | `brew-outdated` and `mise-outdated` jobs |
-| `launchd/` | agent definitions |
-| `bootstrap` | the setup script |
-
 ## Day to day
 
 ```zsh
