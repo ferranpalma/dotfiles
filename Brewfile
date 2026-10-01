@@ -8,8 +8,10 @@ brew "fd"
 
 brew "mise"
 
-# git
-brew "gh"           # GitHub CLI: manages the SSH auth and signing keys
+brew "gh"           
 
 brew "kubecolor"
 brew "kubectx"
+
+brew "colima"
+brew "docker"
