@@ -67,4 +67,5 @@ alias dpsa='docker ps -al'
 alias dv='docker volume list'
 
 # brew
-alias bupdate='brew update -y'
+alias bu='brew update -y'
+alias bb='brew bundle'
