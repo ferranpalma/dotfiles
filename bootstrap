@@ -148,6 +148,26 @@ link "$DOTFILES/mise.toml"  "$XDG_CONFIG_HOME/mise/config.toml"
 # git reads $XDG_CONFIG_HOME/git/config natively, so there is no ~/.gitconfig.
 link "$DOTFILES/git/config" "$XDG_CONFIG_HOME/git/config"
 
+# docker only finds CLI plugins in $DOCKER_CONFIG/cli-plugins. Linking
+# avoids keeping a cliPluginsExtraDirs entry in config.json. Every plugin
+# Homebrew installs (compose, buildx) is linked.
+for plugin in "$HOMEBREW_PREFIX"/lib/docker/cli-plugins/docker-*; do
+  link "$plugin" "$XDG_CONFIG_HOME/docker/cli-plugins/${plugin:t}"
+done
+
+# Keep registry logins in the macOS keychain instead of base64 in config.json.
+docker_config="$XDG_CONFIG_HOME/docker/config.json"
+
+if [[ "$(jq -r '.credsStore // empty' "$docker_config" 2>/dev/null)" == osxkeychain ]]; then
+  skip "docker credsStore"
+else
+  [[ -s "$docker_config" ]] || print '{}' > "$docker_config"
+  jq '.credsStore = "osxkeychain"' "$docker_config" > "$docker_config.tmp"
+  mv "$docker_config.tmp" "$docker_config"
+  chmod 600 "$docker_config"
+  ok "docker credsStore -> osxkeychain"
+fi
+
 [[ -d "$HOME/.ssh" ]] && chmod 700 "$HOME/.ssh"
 
 # --------------------------------------------------------------- 5. runtimes --
