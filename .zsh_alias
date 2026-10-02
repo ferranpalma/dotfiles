@@ -53,6 +53,7 @@ alias gbl='git branch --list'
 alias gbla='git branch -a'
 alias gd='git diff'
 alias ga='git add'
+alias gsw='git switch'
 
 # laibel
 alias laibel-tunnel-dev='kubectl --context main -n laibel-dev port-forward pod/rds-bastion 15432:5432'
@@ -65,7 +66,12 @@ alias ap='aws-profile'
 alias dps='docker ps -l'
 alias dpsa='docker ps -al'
 alias dv='docker volume list'
+alias dis='docker image ls'
 
 # brew
 alias bu='brew update -y'
 alias bb='brew bundle'
+
+alias valias='cat ~/dotfiles/.zsh_alias'
+
+alias cl='clear'
