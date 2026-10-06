@@ -69,7 +69,7 @@ alias dv='docker volume list'
 alias dis='docker image ls'
 
 # brew
-alias bu='brew update -y'
+alias bu='brew update'
 alias bb='brew bundle'
 
 alias valias='cat ~/dotfiles/.zsh_alias'
