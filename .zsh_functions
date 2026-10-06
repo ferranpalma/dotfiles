@@ -18,6 +18,13 @@ aws-profile () {
         fi
 }
 
+# Claude Code's GitHub plugin reads its token from this variable.
+# Execute this each time the claude command is executed, so claude has access
+# to such a token
+claude() {
+  GITHUB_PERSONAL_ACCESS_TOKEN="$(gh auth token 2>/dev/null)" command claude "$@"
+}
+
 # Outdated Homebrew packages, and packages missing from the Brewfile, as found
 # by the launchd agent (com.ferranpalmac.brew-outdated). Reads its two cache
 # files: no network and no brew call, so new shells stay instant.
