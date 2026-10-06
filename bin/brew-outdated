@@ -31,8 +31,10 @@ mv "$cache.new" "$cache"
 # `brew install` is not forgotten. Dependencies are left out: only what was
 # asked for is compared. Offline, unlike `brew bundle cleanup`, which
 # auto-updates before answering and prints its cache cleanup as well.
+# `--full-name` keeps the tap prefix (ariga/tap/atlas), which is how a tapped
+# package is written in the Brewfile; without it, it is listed as just `atlas`.
 comm -23 \
-  <({ brew list --formula --installed-on-request; brew list --cask } | sort) \
+  <({ brew list --formula --installed-on-request --full-name; brew list --cask --full-name } | sort) \
   <(sed -nE 's/^(brew|cask) "([^"]+)".*/\2/p' "$brewfile" | sort) \
   > "$drift.new"
 mv "$drift.new" "$drift"
