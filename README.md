@@ -39,13 +39,15 @@ Then open a new terminal — zplug installs its own plugins on that first start.
 ## Day to day
 
 ```zsh
-brew bundle                 # install anything missing from the Brewfile
+brew bundle                 # install anything missing from the Brewfile, AND upgrade what is outdated
 brew bundle cleanup         # list installed packages the Brewfile does not have
 mise install                # install anything missing from mise.toml
 mise outdated / upgrade     # updates
 ```
 
-Neither `brew bundle` nor `mise install` ever upgrades. Two launchd agents, one
+`mise install` never upgrades, but `brew bundle` does by default: it upgrades
+every outdated package listed in the Brewfile. That includes the `brew bundle`
+run inside `bootstrap`, with or without `--no-plugins`. Two launchd agents, one
 per tool, check once a day, and the first shell of the day prints what is behind:
 
 ```
