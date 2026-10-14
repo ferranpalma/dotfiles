@@ -5,16 +5,18 @@
 -- also what lets `nvim .` open the tree instead of a netrw listing.
 --
 -- Inside the tree, the keys worth knowing are nvim-tree's own defaults:
---   <CR> or o   open the file (or expand/collapse a folder)
---   v  /  s     open it in a VERTICAL / horizontal split  <- the splits answer
---   t           open it in a new tab page
+--   <CR> or o       open the file (or expand/collapse a folder)
+--   <C-v> / <C-x>   open it in a VERTICAL / horizontal split  <- splits
+--   <C-t>           open it in a new tab page
 --   a  d  r  x  c  p    create, delete, rename, cut, copy, paste
---   H  /  I     toggle dotfiles / gitignored files
---   R           refresh
---   ?           the full list of mappings
+--   H  /  I         toggle dotfiles / gitignored files
+--   R               refresh
+--   g?              the full list of mappings
 --
--- Note `v` and `s` above: opening into a split is a property of how the file is
--- opened, exactly as it is in the telescope pickers (<C-v>, <C-x>).
+-- Plain `s` is not a split: it opens the file with the macOS default app.
+--
+-- Note <C-v> and <C-x> above: opening into a split is a property of how the
+-- file is opened, exactly as it is in the telescope pickers (same two keys).
 
 return {
 	"nvim-tree/nvim-tree.lua",
@@ -55,7 +57,7 @@ return {
 			open_file = {
 				-- The window picker asks which window to open into whenever more than
 				-- one is on screen, which turns every open into a second prompt. Off,
-				-- the file goes to the last used window, and v/s/t still say
+				-- the file goes to the last used window, and <C-v>/<C-x>/<C-t> still say
 				-- explicitly where it should go.
 				window_picker = { enable = false },
 			},

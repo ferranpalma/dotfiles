@@ -23,7 +23,7 @@
 --   :vsplit file      open file in a new vertical split
 --   :split  file      same, horizontally
 --   <leader>ff then <C-v>   pick a file and send it to a vertical split
---   inside the tree: v or s   open the file under the cursor in a split
+--   inside the tree: <C-v> or <C-x>   open the file under the cursor in a split
 --
 -- And :q closes a WINDOW, not a file. With only one window open it therefore
 -- quits nvim; that is not a bug. To leave a file use <leader><leader> or

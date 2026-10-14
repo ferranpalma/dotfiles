@@ -5,8 +5,8 @@ node = "lts"       # 24.21.0 today
 go = "latest"      # 1.27.1 today
 python = "3.14"    # newest patch of 3.14, currently 3.14.7
 
-# nvim's language servers and formatters (configured in nvim/lua/lsp.lua and
-# nvim/lua/plugins.lua). These live here rather than in the Brewfile because
+# nvim's language servers and formatters (configured in nvim/lua/ferran/lsp/ and
+# nvim/lua/ferran/plugins/conform.lua). These live here rather than in the Brewfile because
 # they are toolchain, not programs of this machine: a repository can pin its own
 # version in its own mise.toml. That matters most for gopls, whose releases
 # track Go's, so a project on an older Go can get a gopls that matches.
