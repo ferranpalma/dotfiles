@@ -47,9 +47,15 @@ Neovim config, linked as a whole to `~/.config/nvim`. Requires nvim >= 0.11
 
 ## Checking a change
 
-```zsh
-nvim --headless +qa    # prints any error raised while loading the config
-```
+Run from the repo root. Each passes when it prints no error; the rule in the
+root `CLAUDE.md` applies: no check passed, no "done".
 
-Inside nvim, `:checkhealth` and `:Lazy` show the state of the config and
-plugins.
+| Changed | Check | Passes when |
+| --- | --- | --- |
+| anything | `nvim --headless '+Lazy! load all' +qa` | no output. Plain `+qa` is not enough: it skips plugins loaded on a key, command or event |
+| a keymap | `nvim --headless "+lua io.write(vim.fn.maparg('<lhs>','n'))" +qa` | prints the mapping (empty means it does not exist). `'n'` only finds normal-mode mappings: use `'v'`, `'i'`, `'t'`… for other modes |
+| a language server | `nvim --headless <file of that language> '+sleep 3' "+lua io.write(table.concat(vim.tbl_map(function(c) return c.name end, vim.lsp.get_clients({bufnr=0})), ' '))" +qa` | prints the server's name |
+
+`:checkhealth` and `:Lazy` are interactive, so they are for the user, not a
+check an agent can run. How a key or split feels in use is also the user's to
+verify: give them the exact keys to try.

@@ -39,14 +39,39 @@ or restarting nvim.
 
 ## Commands
 
-- `zsh -n <file>`: syntax-check a zsh file or the bootstrap script
 - `~/dotfiles/bootstrap`: idempotent command to set up a new machine. Always ask
   before running it.
+
+## Checking a change
+
+Run the check for every kind of file that was changed. nvim has its own checks
+in `nvim/CLAUDE.md`.
+
+| Changed | Check | Passes when |
+| --- | --- | --- |
+| zsh files, `bootstrap` | `zsh -n <file>` | no output |
+| zsh startup files | `zsh -i -c exit` | no error output; the brew/mise notices are fine |
+| `.tmux.conf` | `tmux -L claude-check -f ~/dotfiles/.tmux.conf new-session -d 'sleep 5'`, then `tmux -L claude-check kill-server` | exit 0, no error output |
+| `launchd/*.plist` | `plutil -lint launchd/*.plist` | every file `OK`; only checks the file is valid, not that the agent works |
+| `git/config` | `git config --file git/config --list` | exit 0 |
+| `mise.toml` | `mise ls --current --offline` | lists the tools, no error |
+| `Brewfile` | `brew bundle list` | lists the packages, no error |
+
+- `zsh -i -c exit` is a real shell start: it may be the first shell of the
+  day for the brew/mise notices, so the user's next terminal will not show them.
+  Say so when running it.
+- The tmux check uses its own server (`-L claude-check`), so the user's sessions
+  are untouched. Never reload or kill the user's own tmux server.
+- Not `brew bundle check`: it reports every outdated package as unmet, so it
+  fails even when the Brewfile is correct.
+- Some things cannot be checked by an agent: whether a key or a split behaves
+  as the user expects, a full `bootstrap` run, and whether the launchd agents
+  fire on schedule. Give the user the exact steps to try instead.
 
 ## Conventions
 
 - A setting, mapping or plugin is only added when the default is not enough or there is a major upgrade using it.
-- Nothing is upgraded by default. A explicit user command is needed (`brew upgrade`, `mise upgrade`, `:Lazy update`, or `brew bundle`, which upgrades too).
+- Nothing is upgraded by default. An explicit user command is needed (`brew upgrade`, `mise upgrade`, `:Lazy update`, or `brew bundle`, which upgrades too).
 - Every new config file has to exist in the repo.
 - Programs the machine runs go in the `Brewfile`. Toolchain (runtimes, language servers, formatters) goes in `mise.toml`.
 - Every directly installed brew package has to be listed in the `Brewfile`.
@@ -67,6 +92,11 @@ sets it. `.zshenv` only exports: no output, nothing slow.
 
 ## Instructions
 
+- A change is not done until the checks for every changed file (see "Checking
+  a change") have run and passed. Never report work as done, working or fixed
+  without that. If a check fails, or cannot run, say so and show its output.
+  What only the user can verify is reported as unverified, with the steps to
+  try, never as done.
 - Every file a tool reads from a fixed path needs a `link` line in step 4 of
   `bootstrap`. Not the files that are sourced (`.zsh_*`), not the `Brewfile`
   (found through `HOMEBREW_BUNDLE_FILE`), and not `bin/` or `launchd/`, which
