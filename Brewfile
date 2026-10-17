@@ -13,6 +13,8 @@ brew "kubectl"
 brew "kubecolor"
 brew "kubectx"
 
+brew "stripe-cli"
+
 brew "colima"
 brew "docker"
 brew "docker-compose"
