@@ -15,6 +15,10 @@ brew "kubectx"
 
 brew "stripe-cli"
 
+brew "ffmpeg"
+
+brew "typst"
+
 brew "colima"
 brew "docker"
 brew "docker-compose"
