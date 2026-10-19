@@ -29,6 +29,7 @@ fi
 # cd's
 alias dotfiles='cd ~ferranpalmac/dotfiles'
 alias dev='cd ~ferranpalmac/Dev'
+alias fitness='cd ~ferranpalmac/fitness'
 
 alias bc='cd ~ferranpalmac/BCLABS'
 alias factout='cd ~ferranpalmac/BCLABS/factout'
