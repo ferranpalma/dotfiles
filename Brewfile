@@ -1,4 +1,7 @@
-brew "starship"     
+# Real formula names, not aliases (`brew info <name>` prints the real one):
+# bin/brew-outdated compares this list as text with what brew says is installed.
+
+brew "starship"
 brew "tmux"         
 
 brew "neovim"
@@ -9,7 +12,7 @@ brew "mise"
 
 brew "gh"           
 
-brew "kubectl"
+brew "kubernetes-cli"
 brew "kubecolor"
 brew "kubectx"
 
@@ -27,7 +30,8 @@ brew "docker-credential-helper"
 
 brew "awscli"
 
-brew "postgresql"
+# Pinned major: a new one is a separate formula and needs pg_upgrade for the data
+brew "postgresql@18"
 
 # Download Ariga's (atlas' creators) official build
 # instead of Homebrew's one (that is the community edition)
