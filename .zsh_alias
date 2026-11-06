@@ -76,3 +76,5 @@ alias bb='brew bundle'
 alias valias='cat ~/dotfiles/.zsh_alias'
 
 alias cl='clear'
+
+alias claude='caffeinate -i claude'
