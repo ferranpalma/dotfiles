@@ -4,6 +4,11 @@
 node = "lts"       # 24.21.0 today
 go = "latest"      # 1.27.1 today
 python = "3.14"    # newest patch of 3.14, currently 3.14.7
+# rust-analyzer is a rustup component rather than a tool of its own below, so it
+# always matches the compiler, including one a project pins in
+# rust-toolchain.toml. rust-src is the standard library's source, which
+# rust-analyzer needs for std. rustfmt and clippy come with the default profile.
+rust = { version = "latest", components = ["rust-analyzer", "rust-src"] }
 
 # nvim's language servers and formatters (configured in nvim/lua/ferran/lsp/ and
 # nvim/lua/ferran/plugins/conform.lua). These live here rather than in the Brewfile because
@@ -22,3 +27,9 @@ stylua = "latest"                        # lua formatter
 # here, while the pipx backend would need pipx or uv installed on top.
 "npm:basedpyright" = "latest"            # provides `basedpyright-langserver`
 "ubi:tree-sitter/tree-sitter" = "latest" # nvim-treesitter compiles parsers with it
+
+[settings]
+# mise sets RUSTUP_TOOLCHAIN, which rustup ranks above a project's
+# rust-toolchain.toml, so without this the global rust above would win over the
+# project's pin.
+idiomatic_version_file_enable_tools = ["rust"]

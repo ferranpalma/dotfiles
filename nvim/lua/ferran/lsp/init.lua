@@ -5,7 +5,7 @@
 --
 --   * nvim 0.11 made vim.lsp.config() / vim.lsp.enable() native, so a server is
 --     a handful of lines. nvim-lspconfig is now mostly a collection of those
---     same lines for hundreds of servers, of which five are relevant here.
+--     same lines for hundreds of servers, of which six are relevant here.
 --   * Mason is a second package manager living inside the editor. The servers
 --     are in mise.toml instead, next to the other toolchain, so `mise install`
 --     on a new machine is the only install step.

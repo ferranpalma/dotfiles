@@ -4,8 +4,8 @@
 -- server as the fallback everywhere else, so a new filetype still gets
 -- formatted without adding configuration for it.
 --
--- The formatters themselves come from mise.toml, except gofmt, which ships with
--- the mise-managed Go.
+-- The formatters themselves come from mise.toml, except gofmt and rustfmt, which
+-- ship with the mise-managed Go and Rust.
 
 return {
 	"stevearc/conform.nvim",
@@ -27,6 +27,7 @@ return {
 			go = { "gofmt" },
 			lua = { "stylua" },
 			python = { "ruff_organize_imports", "ruff_format" },
+			rust = { "rustfmt" },
 		},
 		format_on_save = {
 			timeout_ms = 1000,

@@ -1,6 +1,6 @@
 #!/bin/zsh
-# Caches which mise-managed tools are outdated: the node, go and python runtimes
-# plus nvim's language servers and formatters.
+# Caches which mise-managed tools are outdated: the node, go, python and rust
+# runtimes plus nvim's language servers and formatters.
 #
 # Run by the launchd agent (com.ferranpalmac.mise-outdated) at login and once a
 # day; safe to run by hand.
